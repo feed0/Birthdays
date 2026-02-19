@@ -17,6 +17,8 @@ struct ContentView: View {
     
     @State private var newName = ""
     @State private var newDate = Date.now
+    @State private var newNotes = ""
+    @State private var selectedFriend: Friend?
     
     // MARK: - Body
     
@@ -25,42 +27,95 @@ struct ContentView: View {
             List(friends) { friend in
                 HStack {
                     if friend.isBirthdayToday {
-                        Image(systemName: "birthday.cake")
+                        birthdayCakeIcon
                     }
-                    
-                    Text(friend.name)
-                        .bold(friend.isBirthdayToday)
+                    friendNameText(for: friend)
                     Spacer()
-                    Text(friend.birthday,
-                         format: .dateTime.month(.wide).day().year())
+                    friendBirthdayDateText(for: friend)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    selectedFriend = friend
                 }
             }
             .navigationTitle("Birthdays")
             .safeAreaInset(edge: .bottom) {
                 VStack(alignment: .center, spacing: 20) {
-                    Text("New Birthday")
-                        .font(.headline)
-                    DatePicker(selection: $newDate,
-                               in: Date.distantPast...Date.now,
-                               displayedComponents: .date) {
-                        TextField("Name", text: $newName)
-                            .textFieldStyle(.roundedBorder)
-                    }
-                    Button("Save") {
-                        let newFriend = Friend(name: newName, birthday: newDate)
-                        context.insert(newFriend)
-                        
-                        newName = ""
-                        newDate = .now
-                    }
-                    .bold()
+                    newBirthdayHeaderText
+                    datePicker
+                    saveNewFriendButton
                 }
                 .padding()
                 .background(.bar)
             }
+            .sheet(item: $selectedFriend) { friend in
+                FriendNotesEditor(friend: friend)
+            }
         }
     }
+    
+    // MARK: - Subviews
+    
+    private var birthdayCakeIcon: some View {
+        Image(systemName: "birthday.cake")
+    }
+    
+    private func friendNameText(for friend: Friend) -> some View {
+        Text(friend.name)
+            .bold(friend.isBirthdayToday)
+    }
+    
+    private func friendBirthdayDateText(for friend: Friend) -> some View {
+        Text(friend.birthday, format: .dateTime.month(.wide).day().year())
+    }
+    
+    // MARK: Add new friend
+    
+    private var newBirthdayHeaderText: some View {
+        Text("New Birthday")
+            .font(.headline)
+    }
+    
+    private var datePicker: some View {
+        DatePicker(selection: $newDate,
+                   in: Date.distantPast...Date.now,
+                   displayedComponents: .date) {
+            TextField("Name", text: $newName)
+                .textFieldStyle(.roundedBorder)
+            TextField("Notes (optional)", text: $newNotes, axis: .vertical)
+                .textFieldStyle(.roundedBorder)
+                .lineLimit(3, reservesSpace: true)
+        }
+    }
+    
+    private var saveNewFriendButton: some View {
+        Button("Save") {
+            insertNewFriend()
+            resetNewFriendFields()
+        }
+        .bold()
+    }
+    
+    // MARK: - Private funcs
+    
+    private func insertNewFriend() {
+        let newFriend = Friend(
+            name: newName,
+            birthday: newDate,
+            notes: newNotes,
+        )
+        
+        context.insert(newFriend)
+    }
+    
+    private func resetNewFriendFields() {
+        newName = ""
+        newDate = .now
+        newNotes = ""
+    }
 }
+
+// MARK: - Preview
 
 #Preview {
     ContentView()
