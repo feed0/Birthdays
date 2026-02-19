@@ -12,7 +12,7 @@ struct ContentView: View {
     
     // MARK: - Properties
     
-    @Query(sort: \Friend.birthday) private var friends: [Friend]
+    @Query(sort: \Friend.name) private var friends: [Friend]
     @Environment(\.modelContext) private var context
     
     @State private var newName = ""
