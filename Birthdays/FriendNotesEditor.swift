@@ -96,11 +96,5 @@ struct FriendNotesEditor: View {
 // MARK: - Preview
 
 #Preview {
-    let friend = Friend(
-        name: "Oliver J. Smith",
-        birthday: Date(),
-        notes: "Buy him a new Helicopter for his brand new yatch that his nephew gave him."
-    )
-    
-    FriendNotesEditor(friend: friend)
+    FriendNotesEditor(friend: Friend.sampleData[3])
 }
