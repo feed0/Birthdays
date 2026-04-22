@@ -2,7 +2,7 @@
 //  BirthdaysApp.swift
 //  Birthdays
 //
-//  Created by Felipe Eduardo Campelo Ferreira Osorio on 16/02/26.
+//  Created by feed0 on 16/02/26.
 //
 
 import SwiftUI
@@ -13,7 +13,9 @@ struct BirthdaysApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .modelContainer(SampleData.shared.modelContainer)
+                .modelContainer(for: [
+                    Friend.self,
+                ])
         }
     }
 }

@@ -53,6 +53,4 @@ class SampleData {
             context.insert(friend)
         }
     }
-    
-    // MARK: -
 }
