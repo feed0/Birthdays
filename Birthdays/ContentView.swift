@@ -2,7 +2,7 @@
 //  ContentView.swift
 //  Birthdays
 //
-//  Created by Felipe Eduardo Campelo Ferreira Osorio on 16/02/26.
+//  Created by feed0 on 16/02/26.
 //
 
 import SwiftUI
@@ -12,106 +12,92 @@ struct ContentView: View {
     
     // MARK: - Properties
     
-    @Query(sort: \Friend.name) private var friends: [Friend]
+    @Query(sort: \Friend.birthday) private var friends: [Friend]
     @Environment(\.modelContext) private var context
     
-    @State private var newName = ""
-    @State private var newDate = Date.now
-    @State private var newNotes = ""
-    @State private var selectedFriend: Friend?
+    @State private var newFriend: Friend?
     
     // MARK: - Body
     
     var body: some View {
-        NavigationStack {
-            List(friends) { friend in
-                HStack {
-                    if friend.isBirthdayToday {
-                        birthdayCakeIcon
-                    }
-                    friendNameText(for: friend)
-                    Spacer()
-                    friendBirthdayDateText(for: friend)
+        NavigationSplitView {
+            List {
+                ForEach(friends) { friend in
+                    friendRow(for: friend)
                 }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    selectedFriend = friend
-                }
+                .onDelete(perform: handleDeleteFriends(indexes:))
             }
             .navigationTitle("Birthdays")
-            .safeAreaInset(edge: .bottom) {
-                VStack(alignment: .center, spacing: 20) {
-                    newBirthdayHeaderText
-                    datePicker
-                    saveNewFriendButton
+            .toolbar {
+                ToolbarItem {
+                    addFriendButton
                 }
-                .padding()
-                .background(.bar)
+                ToolbarItem {
+                    editListButton
+                }
             }
-            .sheet(item: $selectedFriend) { friend in
-                FriendNotesEditor(friend: friend)
+            .sheet(item: $newFriend) { friend in
+                NavigationStack {
+                    newFriendDetail(for: friend)
+                }
+                .interactiveDismissDisabled()
             }
+        } detail: {
+            defaultDetailLink
         }
     }
     
     // MARK: - Subviews
-    
-    private var birthdayCakeIcon: some View {
-        Image(systemName: "birthday.cake")
+        
+    private func friendRow(for friend: Friend) -> some View {
+        FriendRow(friend: friend)
     }
     
-    private func friendNameText(for friend: Friend) -> some View {
-        Text(friend.name)
-            .bold(friend.isBirthdayToday)
+    private func newFriendDetail(for friend: Friend) -> some View {
+        FriendDetail(
+            friend: friend,
+            isNewFriend: true
+        )
     }
     
-    private func friendBirthdayDateText(for friend: Friend) -> some View {
-        Text(friend.birthday, format: .dateTime.month(.wide).day().year())
+    // MARK: Atoms
+    
+    private var addFriendButton: some View {
+        Button(
+            "Add friend",
+            systemImage: "plus",
+            action: handleAddFriendButton
+        )
     }
     
-    // MARK: Add new friend
-    
-    private var newBirthdayHeaderText: some View {
-        Text("New Birthday")
-            .font(.headline)
+    private var editListButton: some View {
+        EditButton()
     }
     
-    private var datePicker: some View {
-        DatePicker(selection: $newDate,
-                   in: Date.distantPast...Date.now,
-                   displayedComponents: .date) {
-            TextField("Name", text: $newName)
-                .textFieldStyle(.roundedBorder)
-            TextField("Notes (optional)", text: $newNotes, axis: .vertical)
-                .textFieldStyle(.roundedBorder)
-                .lineLimit(3, reservesSpace: true)
-        }
-    }
-    
-    private var saveNewFriendButton: some View {
-        Button("Save") {
-            insertNewFriend()
-            resetNewFriendFields()
-        }
-        .bold()
+    private var defaultDetailLink: some View {
+        Text("Select a friend")
+            .navigationTitle("Friend")
+            .navigationBarTitleDisplayMode(.inline)
     }
     
     // MARK: - Private funcs
     
-    private func insertNewFriend() {
+    private func handleDeleteFriends(indexes: IndexSet) {
+        for index in indexes {
+            let friend = friends[index]
+            context.delete(friend)
+        }
+    }
+    
+    private func handleAddFriendButton() {
         let newFriend = Friend(
-            name: newName,
-            birthday: newDate,
-            notes: newNotes,
+            name: "",
+            birthday: Date.now,
+            notes: "",
         )
         
         context.insert(newFriend)
-    }
-    
-    private func resetNewFriendFields() {
-        newName = ""
-        newDate = .now
-        newNotes = ""
+        self.newFriend = newFriend
     }
 }
 
