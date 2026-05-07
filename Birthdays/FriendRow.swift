@@ -57,7 +57,7 @@ struct FriendRow: View {
     }
 }
 
-// MARK: - Preview
+// MARK: - Previews
 
 #Preview("Component") {
     let mockFriend = Friend.sampleData.first!

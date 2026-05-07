@@ -15,9 +15,12 @@ struct FriendDetail: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
     
+    // MARK: Friend
     @Bindable var friend: Friend
-    
     private let isNewFriend: Bool
+    
+    // MARK: Gift
+    @State private var newGift: Gift?
     
     // MARK: Computed Properties
     
@@ -38,22 +41,52 @@ struct FriendDetail: View {
     // MARK: - Body
     
     var body: some View {
-        Form {
-            friendNameTextField
-            friendBirthdayDatePicker
-            notesTextField
+        NavigationStack {
+            Form {
+                friendNameTextField
+                friendBirthdayDatePicker
+                notesTextField
+                
+                if !isNewFriend {
+                    Section("Gifts") {
+                        if friend.gifts.isEmpty {
+                            emptyGiftListContentUnavailableView
+                        } else {
+                            List {
+                                ForEach(friend.gifts) { gift in
+                                    giftRow(for: gift)
+                                }
+                                .onDelete(perform: handleDeleteFriendGiftRelationship(indexes:))
+                            }
+                        }
+                    }
+                }
+            }
         }
         .navigationTitle(navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             if isNewFriend {
                 ToolbarItem(placement: .cancellationAction) {
-                    cancelButton
+                    cancelAddFriendButton
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    saveButton
+                    saveFriendButton
+                }
+            } else {
+                ToolbarItem {
+                    addGiftButton
+                }
+                ToolbarItem {
+                    editListButton
                 }
             }
+        }
+        .sheet(item: $newGift) { gift in
+            NavigationStack {
+                newGiftDetail(for: gift)
+            }
+            .interactiveDismissDisabled()
         }
     }
     
@@ -77,8 +110,6 @@ struct FriendDetail: View {
         )
     }
     
-    // MARK: Notes section
-    
     private var notesTextField: some View {
         TextField(
             "Notes",
@@ -86,22 +117,62 @@ struct FriendDetail: View {
         )
     }
     
-    // MARK: Toolbar buttons
+    // MARK: Gifts section
     
-    private var cancelButton: some View {
+    private var emptyGiftListContentUnavailableView: some View {
+        ContentUnavailableView(
+            "Add gifts",
+            systemImage: "gift",
+        )
+    }
+    
+    private func giftRow(for gift: Gift) -> some View {
+        GiftRow(
+            gift: gift,
+            friend: friend,
+        )
+    }
+    
+    private func newGiftDetail(for gift: Gift) -> some View {
+        GiftDetail(
+            gift: gift,
+            isNewGift: true,
+            friend: friend,
+        )
+    }
+    
+    // MARK: Add friend toolbar buttons
+    
+    private var cancelAddFriendButton: some View {
         Button("Cancel") {
             handleCancelButton()
         }
     }
     
-    private var saveButton: some View {
+    private var saveFriendButton: some View {
         Button("Save") {
             handleSaveButton()
         }
         .bold()
     }
     
+    // MARK: Gift toolbar buttons
+    
+    private var addGiftButton: some View {
+        Button(
+            "Add gift",
+            systemImage: "gift.fill",
+            action: handleAddGiftButton,
+        )
+    }
+    
+    private var editListButton: some View {
+        EditButton()
+    }
+    
     // MARK: - Private funcs
+    
+    // MARK: Add friend toolbar actions
     
     private func handleCancelButton() {
         context.delete(friend)
@@ -111,13 +182,33 @@ struct FriendDetail: View {
     private func handleSaveButton() {
         dismiss()
     }
+    
+    // MARK: Gift actions
+    
+    private func handleAddGiftButton() {
+        let newGift = Gift(
+            title: "",
+            price: 0,
+        )
+        
+        context.insert(newGift)
+        self.newGift = newGift
+    }
+    
+    private func handleDeleteFriendGiftRelationship(indexes: IndexSet) {
+        for index in indexes {
+            let gift = friend.gifts[index]
+            friend.gifts.remove(at: index)
+            context.delete(gift)
+        }
+    }
 }
 
-// MARK: - Preview
+// MARK: - Previews
 
 // MARK: Edit friend
 
-#Preview {
+#Preview("Edit friend") {
     NavigationStack {
         FriendDetail(
             friend: Friend.sampleData[3],
@@ -134,4 +225,26 @@ struct FriendDetail: View {
             isNewFriend: true,
         )
     }
+}
+
+// MARK: Friend with gifts
+
+#Preview("Friend with gifts") {
+    NavigationStack {
+        FriendDetail(
+            friend: Friend.sampleData[0],
+        )
+    }
+    .modelContext(SampleData.shared.context)
+}
+
+// MARK: Friend with NO gifts
+
+#Preview("Friend with NO gifts") {
+    NavigationStack {
+        FriendDetail(
+            friend: Friend.sampleData[3],
+        )
+    }
+    .modelContext(SampleData.shared.context)
 }

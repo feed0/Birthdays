@@ -2,7 +2,7 @@
 //  Friend.swift
 //  Birthdays
 //
-//  Created by Felipe Eduardo Campelo Ferreira Osorio on 16/02/26.
+//  Created by Felipe feed0 on 16/02/26.
 //
 
 import Foundation
@@ -16,12 +16,14 @@ class Friend {
     var name: String
     var birthday: Date
     var notes: String = ""
+    var gifts: [Gift] = []
     
     // MARK: - Init
     
-    init(name: String,
-         birthday: Date,
-         notes: String = "",
+    init(
+        name: String,
+        birthday: Date,
+        notes: String = "",
     ) {
         self.name = name
         self.birthday = birthday
@@ -55,6 +57,6 @@ extension Friend {
             name: "Oliver J. Smith",
             birthday: Calendar.current.date(byAdding: .year, value: 10, to: Date()) ?? Date(),
             notes: "Buy him a new Helicopter for his brand new yatch that his nephew gave him.",
-        )
+        ),
     ]
 }

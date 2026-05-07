@@ -52,5 +52,22 @@ class SampleData {
         for friend in Friend.sampleData {
             context.insert(friend)
         }
+        
+        for gift in Gift.sampleData {
+            context.insert(gift)
+        }
+        
+        Friend.sampleData[0].gifts = [
+            Gift.sampleData[0],
+            Gift.sampleData[3],
+        ]
+        
+        Friend.sampleData[1].gifts = [
+            Gift.sampleData[1],
+        ]
+        
+        Friend.sampleData[2].gifts = [
+            Gift.sampleData[2],
+        ]
     }
 }
